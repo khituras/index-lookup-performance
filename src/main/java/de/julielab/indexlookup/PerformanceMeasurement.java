@@ -2,6 +2,7 @@ package de.julielab.indexlookup;
 
 import de.julielab.indexlookup.hashmap.HashMapIndex;
 import de.julielab.indexlookup.lucene.LuceneIndex;
+import de.julielab.indexlookup.mapdb.MapDbIndex;
 import de.julielab.indexlookup.sqlite.SQLiteIndex;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
@@ -10,7 +11,7 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 
 public class PerformanceMeasurement {
-    public static final int NUM_ENTRIES = 100000;
+    public static final int NUM_ENTRIES = 10000000;
     public static final int ROUNDS = 3;
     public static final int MIN_VALUE_LENGTH = 2;
     public static final int MAX_KEY_LENGTH = 10;
@@ -23,8 +24,9 @@ public class PerformanceMeasurement {
 
     public PerformanceMeasurement() {
         indices.add(new TimingStringIndex(new SQLiteIndex()));
-        indices.add(new TimingStringIndex(new HashMapIndex()));
         indices.add(new TimingStringIndex(new LuceneIndex()));
+        indices.add(new TimingStringIndex(new MapDbIndex()));
+//        indices.add(new TimingStringIndex(new HashMapIndex()));
     }
 
     public static void main(String args[]) {
@@ -34,22 +36,31 @@ public class PerformanceMeasurement {
 
     private void run() {
         index();
-        Map<String, Long> time = new HashMap<>();
+        log.info("Data indexing has finished.");
+        for (var index : indices)
+            index.close();
+        Map<String, Long> time = new LinkedHashMap<>();
         for (int i = 0; i < ROUNDS; i++) {
+            for (var index : indices)
+                index.open();
             query();
             for (var index : indices) {
                 long timeForStringLookups = index.getTimeForStringLookups();
                 time.merge(index.getName(), timeForStringLookups, Long::sum);
-                log.info("Index {} took {}s", index.getName(), timeForStringLookups / Math.pow(10, 9));
+                log.info("Index {} took {}s for single string lookups", index.getName(), timeForStringLookups / Math.pow(10, 9));
             }
             for (var index : indices) {
                 long timeForArrayLookups = index.getTimeForArrayLookups();
                 time.merge(index.getName(), timeForArrayLookups, Long::sum);
-                log.info("Index {} took {}s", index.getName(), timeForArrayLookups / Math.pow(10, 9));
+                log.info("Index {} took {}s for string array lookups", index.getName(), timeForArrayLookups / Math.pow(10, 9));
             }
+            log.info("---");
+            for (var index : indices)
+                index.close();
         }
+        log.info("===");
         for (var indexName : time.keySet()) {
-            log.info("Index {} took an average of {}s over {} rounds", indexName, (time.get(indexName)/(double)ROUNDS) / Math.pow(10, 9), ROUNDS);
+            log.info("Index {} took an average of {}s over {} rounds", indexName, (time.get(indexName) / (double) ROUNDS) / Math.pow(10, 9), ROUNDS);
         }
     }
 
@@ -72,6 +83,11 @@ public class PerformanceMeasurement {
         for (int i = 0; i < NUM_ENTRIES; i++) {
             indexSingleString();
             indexStringArray();
+            if (i % 1000 == 0)
+                for (var index : indices)
+                    index.commit();
+            if (i % NUM_ENTRIES / 10 == 0)
+                log.info("Indexed {} items.", i);
         }
         for (var index : indices) {
             if (index.requiresExplicitCommit())

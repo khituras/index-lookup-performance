@@ -107,8 +107,6 @@ public class LuceneIndex implements StringIndex {
     public void commit() {
         try {
             iw.commit();
-            iw.close();
-            searcher = new IndexSearcher(DirectoryReader.open(directory));
         } catch (IOException e) {
             log.error("Could not commit Lucene index", e);
             throw new IllegalStateException(e);
@@ -118,5 +116,25 @@ public class LuceneIndex implements StringIndex {
     @Override
     public boolean requiresExplicitCommit() {
         return true;
+    }
+
+    @Override
+    public void close() {
+        try {
+            searcher.getIndexReader().close();
+        } catch (IOException e) {
+            log.error("Could not close Lucene index reader.", e);
+            throw new IllegalStateException(e);
+        }
+    }
+
+    @Override
+    public void open() {
+        try {
+            searcher = new IndexSearcher(DirectoryReader.open(directory));
+        } catch (IOException e) {
+            log.error("Could not open Lucene index searcher.", e);
+            throw new IllegalStateException(e);
+        }
     }
 }

@@ -13,18 +13,12 @@ public class SQLiteIndex implements StringIndex {
     private final static Logger log = LoggerFactory.getLogger(SQLiteIndex.class);
     private final PreparedStatement stringInsertionPs;
     private final PreparedStatement stringQueryPs;
-    private final Statement stmt;
+    private Statement stmt;
     private Connection connection;
 
     public SQLiteIndex() {
-        connection = null;
-        String dbName = "sqlite";
-        new File(dbName).deleteOnExit();
+        open();
         try {
-            Class.forName("org.sqlite.JDBC");
-            connection = DriverManager.getConnection("jdbc:sqlite:" + dbName);
-            connection.setAutoCommit(false);
-            stmt = connection.createStatement();
             stmt.execute("CREATE TABLE stringtable " +
                     "(key            TEXT    NOT NULL," +
                     " value          TEXT    NOT NULL)");
@@ -35,7 +29,6 @@ public class SQLiteIndex implements StringIndex {
             log.error("Could connect to SQLite DB or create the table(s)", e);
             throw new IllegalStateException(e);
         }
-        log.info("Opened SQLite database successfully");
     }
 
     @Override
@@ -96,5 +89,31 @@ public class SQLiteIndex implements StringIndex {
     @Override
     public boolean requiresExplicitCommit() {
         return true;
+    }
+
+    @Override
+    public void close() {
+        try {
+            connection.close();
+        } catch (SQLException e) {
+            log.error("Could not close connection so SQLite.", e);
+            throw new IllegalStateException(e);
+        }
+    }
+
+    @Override
+    public void open() {
+        connection = null;
+        String dbName = "sqlite";
+        new File(dbName).deleteOnExit();
+        try {
+            Class.forName("org.sqlite.JDBC");
+            connection = DriverManager.getConnection("jdbc:sqlite:" + dbName);
+            connection.setAutoCommit(false);
+            stmt = connection.createStatement();
+        } catch (Exception e) {
+            log.error("Could connect to SQLite DB or create the table(s)", e);
+            throw new IllegalStateException(e);
+        }
     }
 }

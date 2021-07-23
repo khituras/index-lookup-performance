@@ -46,6 +46,16 @@ public class TimingStringIndex implements StringIndex{
     }
 
     @Override
+    public void close() {
+        index.close();
+    }
+
+    @Override
+    public void open() {
+        index.open();
+    }
+
+    @Override
     public String getName() {
         return index.getName();
     }

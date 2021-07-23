@@ -13,6 +13,10 @@ public interface StringIndex {
 
     boolean requiresExplicitCommit();
 
+    void close();
+
+    void open();
+
     default String getName() {
         return getClass().getSimpleName();
     }

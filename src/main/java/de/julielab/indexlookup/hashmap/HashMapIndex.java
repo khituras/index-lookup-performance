@@ -37,4 +37,14 @@ public class HashMapIndex implements StringIndex {
     public boolean requiresExplicitCommit() {
         return false;
     }
+
+    @Override
+    public void close() {
+        // nothing to do
+    }
+
+    @Override
+    public void open() {
+        // nothing to do
+    }
 }
