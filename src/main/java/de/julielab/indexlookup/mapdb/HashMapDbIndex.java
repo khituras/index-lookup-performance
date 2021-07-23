@@ -12,15 +12,7 @@ import java.util.stream.Stream;
 
 public class HashMapDbIndex extends MapDbIndex {
 
-    @Override
-    public String[] getArray(String key) {
-        return stringIndex.get(key).split("\\$\\$");
-    }
 
-    @Override
-    public void put(String key, String[] value) {
-        stringIndex.put(key, Stream.of(value).collect(Collectors.joining("$$")));
-    }
 
     @Override
     public void open() {
@@ -29,10 +21,7 @@ public class HashMapDbIndex extends MapDbIndex {
         dbFile.deleteOnExit();
         filedb = DBMaker.fileDB(dbFile).fileMmapEnableIfSupported().cleanerHackEnable().make();
         stringIndex = filedb.hashMap("StringIndex").
-                keySerializer(Serializer.STRING).valueSerializer(Serializer.STRING).
-                createOrOpen();
-        arrayIndex = filedb.hashMap("ArrayIndex").
-                keySerializer(Serializer.STRING).valueSerializer(Serializer.JAVA).
+                keySerializer(Serializer.STRING).valueSerializer(Serializer.BYTE_ARRAY).
                 createOrOpen();
     }
 }

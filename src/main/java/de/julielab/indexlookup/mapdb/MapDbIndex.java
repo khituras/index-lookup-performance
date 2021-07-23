@@ -7,12 +7,14 @@ import org.mapdb.HTreeMap;
 import org.mapdb.Serializer;
 
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public abstract class MapDbIndex implements StringIndex {
 
-    protected Map<String, String[]> arrayIndex;
-    protected Map<String, String> stringIndex;
+    protected Map<String, byte[]> stringIndex;
     protected DB filedb;
 
     public MapDbIndex() {
@@ -20,24 +22,26 @@ public abstract class MapDbIndex implements StringIndex {
     }
 
     @Override
-    public String get(String key) {
-        return stringIndex.get(key);
-    }
-
-    @Override
     public String[] getArray(String key) {
-        return arrayIndex.get(key);
-    }
-
-    @Override
-    public void put(String key, String value) {
-        stringIndex.put(key, value);
+        return new String(stringIndex.get(key), StandardCharsets.UTF_8).split("\\$\\$");
     }
 
     @Override
     public void put(String key, String[] value) {
-        arrayIndex.put(key, value);
+        stringIndex.put(key, Stream.of(value).collect(Collectors.joining("$$")).getBytes(StandardCharsets.UTF_8));
     }
+
+    @Override
+    public String get(String key) {
+        return new String(stringIndex.get(key), StandardCharsets.UTF_8);
+    }
+
+
+    @Override
+    public void put(String key, String value) {
+        stringIndex.put(key, value.getBytes(StandardCharsets.UTF_8));
+    }
+
 
     @Override
     public void commit() {
