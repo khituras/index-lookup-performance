@@ -7,12 +7,13 @@ import org.mapdb.HTreeMap;
 import org.mapdb.Serializer;
 
 import java.io.File;
+import java.util.Map;
 
-public class MapDbIndex implements StringIndex {
+public abstract class MapDbIndex implements StringIndex {
 
-    private HTreeMap<String, String[]> arrayIndex;
-    private HTreeMap<String, String> stringIndex;
-    private DB filedb;
+    protected Map<String, String[]> arrayIndex;
+    protected Map<String, String> stringIndex;
+    protected DB filedb;
 
     public MapDbIndex() {
        open();
@@ -53,17 +54,4 @@ public class MapDbIndex implements StringIndex {
         filedb.close();
     }
 
-    @Override
-    public void open() {
-        String dbPath = "mapdb.db";
-        File dbFile = new File(dbPath);
-        dbFile.deleteOnExit();
-        filedb = DBMaker.fileDB(dbFile).fileMmapEnableIfSupported().cleanerHackEnable().make();
-        stringIndex = filedb.hashMap("StringIndex").
-                keySerializer(Serializer.STRING).valueSerializer(Serializer.STRING).
-                createOrOpen();
-        arrayIndex = filedb.hashMap("ArrayIndex").
-                keySerializer(Serializer.STRING).valueSerializer(Serializer.JAVA).
-                createOrOpen();
-    }
 }

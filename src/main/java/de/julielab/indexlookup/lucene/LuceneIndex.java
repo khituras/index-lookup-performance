@@ -121,7 +121,8 @@ public class LuceneIndex implements StringIndex {
     @Override
     public void close() {
         try {
-            searcher.getIndexReader().close();
+            if (searcher != null)
+                searcher.getIndexReader().close();
         } catch (IOException e) {
             log.error("Could not close Lucene index reader.", e);
             throw new IllegalStateException(e);

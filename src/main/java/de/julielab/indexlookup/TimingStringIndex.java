@@ -4,6 +4,8 @@ public class TimingStringIndex implements StringIndex{
     private StringIndex index;
     private long timeForStringLookups = 0;
     private long timeForArrayLookups = 0;
+    private long timeForStringIndexing = 0;
+    private long timeForArrayIndexing = 0;
 
     public TimingStringIndex(StringIndex index) {
         this.index = index;
@@ -27,17 +29,33 @@ public class TimingStringIndex implements StringIndex{
         }
     }
 
+    public long getTimeForStringIndexing() {
+        return timeForStringIndexing;
+    }
+
+    public long getTimeForArrayIndexing() {
+        return timeForArrayIndexing;
+    }
+
     public void put(String key, String value) {
+        long time = System.nanoTime();
         index.put(key, value);
+        timeForStringIndexing += System.nanoTime() - time;
     }
 
     public void put(String key, String[] value) {
+        long time = System.nanoTime();
         index.put(key, value);
+        timeForArrayIndexing += System.nanoTime() - time;
     }
 
     @Override
     public void commit() {
+        long time = System.nanoTime();
         index.commit();
+        time = System.nanoTime() - time;
+        timeForStringIndexing += time;
+        timeForArrayIndexing += time;
     }
 
     @Override
@@ -47,7 +65,11 @@ public class TimingStringIndex implements StringIndex{
 
     @Override
     public void close() {
+        long time = System.nanoTime();
         index.close();
+        time = System.nanoTime() - time;
+        timeForStringIndexing += time;
+        timeForArrayIndexing += time;
     }
 
     @Override
@@ -66,5 +88,12 @@ public class TimingStringIndex implements StringIndex{
 
     public long getTimeForArrayLookups() {
         return timeForArrayLookups;
+    }
+
+    public void resetTimings() {
+        timeForStringLookups = 0;
+        timeForArrayLookups = 0;
+        timeForStringIndexing = 0;
+        timeForArrayIndexing = 0;
     }
 }
