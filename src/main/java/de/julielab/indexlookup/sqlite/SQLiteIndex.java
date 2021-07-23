@@ -18,10 +18,11 @@ public class SQLiteIndex implements StringIndex {
 
     public SQLiteIndex() {
         connection = null;
-        new File("test.db").deleteOnExit();
+        String dbName = "sqlite";
+        new File(dbName).deleteOnExit();
         try {
             Class.forName("org.sqlite.JDBC");
-            connection = DriverManager.getConnection("jdbc:sqlite:test.db");
+            connection = DriverManager.getConnection("jdbc:sqlite:" + dbName);
             connection.setAutoCommit(false);
             stmt = connection.createStatement();
             stmt.execute("CREATE TABLE stringtable " +
@@ -40,9 +41,6 @@ public class SQLiteIndex implements StringIndex {
     @Override
     public String get(String key) {
         try {
-//            stringQueryPs.setString(1, key);
-//            stringQueryPs.addBatch();
-//            ResultSet rs = stringInsertionPs.executeQuery();
             ResultSet rs = stmt.executeQuery("SELECT value FROM stringtable WHERE key='" + key + "'");
             return rs.next() ? rs.getString(1) : null;
         } catch (SQLException e) {
@@ -55,8 +53,7 @@ public class SQLiteIndex implements StringIndex {
     public String[] getArray(String key) {
         List<String> ret = new ArrayList<>();
         try {
-            stringQueryPs.setString(1, key);
-            ResultSet rs = stringInsertionPs.executeQuery();
+            ResultSet rs = stmt.executeQuery("SELECT value FROM stringtable WHERE key='" + key + "'");
             while (rs.next()) {
                 ret.add(rs.getString(1));
             }

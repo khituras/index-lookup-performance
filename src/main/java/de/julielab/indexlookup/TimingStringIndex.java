@@ -23,7 +23,7 @@ public class TimingStringIndex implements StringIndex{
         try {
             return index.getArray(key);
         } finally {
-            timeForStringLookups += System.nanoTime() - time;
+            timeForArrayLookups += System.nanoTime() - time;
         }
     }
 
