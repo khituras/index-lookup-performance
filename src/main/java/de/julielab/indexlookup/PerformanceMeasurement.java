@@ -1,5 +1,6 @@
 package de.julielab.indexlookup;
 
+import de.julielab.indexlookup.lucene.LuceneIndex;
 import de.julielab.indexlookup.mapdb.HashMapDbIndex;
 import de.julielab.indexlookup.mapdb.TreeMapDbIndex;
 import de.julielab.indexlookup.sql.SQLiteIndex;
@@ -24,8 +25,8 @@ public class PerformanceMeasurement {
     private Random subsetRandom;
 
     public PerformanceMeasurement() {
-//        indices.add(new TimingStringIndex(new SQLiteIndex()));
-//        indices.add(new TimingStringIndex(new LuceneIndex()));
+        indices.add(new TimingStringIndex(new SQLiteIndex()));
+        indices.add(new TimingStringIndex(new LuceneIndex()));
         indices.add(new TimingStringIndex(new HashMapDbIndex()));
         indices.add(new TimingStringIndex(new TreeMapDbIndex()));
 //        indices.add(new TimingStringIndex(new HashMapIndex()));
